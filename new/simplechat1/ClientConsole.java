@@ -41,11 +41,11 @@ public class ClientConsole implements ChatIF
    * @param host The host to connect to.
    * @param port The port to connect on.
    */
-  public ClientConsole(String host, int port) 
+  public ClientConsole(String host, int port, String loginID) 
   {
     try 
     {
-      client= new ChatClient(host, port, this);
+      client= new ChatClient(host, port,loginID, this);
     } 
     catch(IOException exception) 
     {
@@ -104,25 +104,35 @@ public class ClientConsole implements ChatIF
    */
   public static void main(String[] args) 
   {
+    String usageString = "Usage is ClientConsole <login id> [host port]";
     String host = "localhost";
     int port = DEFAULT_PORT;  //The port number
+    String loginID = "";
 
-
-    //Modified for E.49 (b) Samy Abidib
+    //Modified for E.49 (b) and E.50(a) Samy Abidib
     
-    if(args.length > 0) {
-      host = args[0];
+    if(args.length < 1){
+      System.out.println(usageString);
+      System.exit(1);
     }
 
-    if(args.length > 1){
+    if(args.length > 0){
+      loginID = args[0];
+    }
+
+    if(args.length > 1) {
+      host = args[1];
+    }
+
+    if(args.length > 2){
       try{
-        port = Integer.parseInt(args[1]);
+        port = Integer.parseInt(args[2]);
       } catch (NumberFormatException e){
         port = DEFAULT_PORT;
       }
     }
 
-    ClientConsole chat= new ClientConsole(host, port);
+    ClientConsole chat= new ClientConsole(host, port,loginID);
     chat.accept();  //Wait for console data
   }
 }

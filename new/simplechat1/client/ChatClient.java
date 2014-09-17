@@ -27,6 +27,11 @@ public class ChatClient extends AbstractClient
    */
   ChatIF clientUI; 
 
+
+  /**
+   * The login id that is to be passed to the server.
+   */
+  String loginID;
   
   //Constructors ****************************************************
   
@@ -38,12 +43,14 @@ public class ChatClient extends AbstractClient
    * @param clientUI The interface type variable.
    */
   
-  public ChatClient(String host, int port, ChatIF clientUI) 
+  public ChatClient(String host, int port, String loginID, ChatIF clientUI) 
     throws IOException 
   {
     super(host, port); //Call the superclass constructor
+    this.loginID = loginID;
     this.clientUI = clientUI;
     openConnection();
+    sendToServer("#login " + this.loginID);
   }
 
   
