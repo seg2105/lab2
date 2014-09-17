@@ -66,16 +66,109 @@ public class ChatClient extends AbstractClient
    */
   public void handleMessageFromClientUI(String message)
   {
-    try
-    {
-      sendToServer(message);
+
+    //Modified for E.50 (a) client side
+    if(message.substring(0, 1).equals("#")){
+      //We extract everything after the # symbol
+      String[] raw_command_array = message.split("#")[1].split(" ");
+      String command = raw_command_array[0];
+      String[] param;
+
+      if(raw_command_array.length > 1){
+        //We copy all the parameters from the raw_command_array
+        //into the param array. The parameters in the 
+        //raw_command_array are all the other elements 
+        //other than raw_command_array[0].
+        param = new String[raw_command_array.length-1];
+        for(int i = 0; i < param.length;i++){
+          param[i] = raw_command_array[i+1];          
+        }
+      } else {
+        param = new String[1];
+        param[0] = "";
+      }
+
+
+      /********* Quit ****************/
+      if(command.equals("quit")){
+        try{
+          this.closeConnection();
+        } catch (Exception e){
+          clientUI.display("IOException when disconnecting.");
+        }
+        clientUI.display("Quitting.");
+        System.exit(0);
+      /********* Log Off****************/
+      } else if(command.equals("logoff")){
+        try{
+          this.closeConnection();
+        } catch (Exception e){
+          clientUI.display("IOException when disconnecting.");
+        }        
+      /********* Set Host****************/
+      } else if(command.equals("sethost")){
+        if(param[0].equals("")){
+          clientUI.display("Usage of #sethost <hostname>");
+        }  else {
+          if(this.isConnected()){
+            clientUI.display("Host cannot be changed while logged into a server.");
+          } else {
+            this.setHost(param[0]);
+            clientUI.display("Host changed to " + param[0]);
+          }
+        }
+      /********* Set Port****************/
+      } else if(command.equals("setport")){
+        if(param[0].equals("")){
+          clientUI.display("Usage of #setport <port>");
+        }  else {
+          if(this.isConnected()){
+            clientUI.display("Host cannot be changed while logged into a server.");
+          }  else  {
+            int port ;
+            try{
+              port = Integer.parseInt(param[0]);
+              this.setPort(port);
+              clientUI.display("Port changed to " + param[0]);
+            } catch (NumberFormatException e){
+              clientUI.display("The port parameter must be an integer.");
+            }
+          }
+        }
+      /********* Login****************/
+      } else if(command.equals("login")){
+        if(this.isConnected()){
+          clientUI.display("Already connected to server at " + this.getHost() + ":" + this.getPort());
+        } else {
+          try{
+            openConnection();
+            clientUI.display("Connected to server at " + this.getHost() + ":"+this.getPort());
+          } catch (Exception e){
+            clientUI.display("Could not connect to server at " + this.getHost() + ":"+this.getPort());
+          }
+        }
+      /********* getHost****************/
+      } else if(command.equals("getHost")){
+        clientUI.display("Current host is " + this.getHost());
+      /********* getPort****************/
+      } else if(command.equals("getPort")){
+        clientUI.display("Current port is " + this.getPort());
+      }
+
+    } 
+    else {
+      try
+      {
+        sendToServer(message);
+      }
+      catch(IOException e)
+      {
+        clientUI.display
+          ("Could not send message to server.  Terminating client.");
+        quit();
+      }
     }
-    catch(IOException e)
-    {
-      clientUI.display
-        ("Could not send message to server.  Terminating client.");
-      quit();
-    }
+
   }
   
 
@@ -83,11 +176,10 @@ public class ChatClient extends AbstractClient
   
   /**
    * Overrided method from AbstractClient that is called 
-   * when the connectino to the server is closed.
+   * when the connection to the server is closed.
    */
   protected void connectionClosed() {
-      System.out.println("Server Disconnected. Quitting.");
-      System.exit(1);
+      clientUI.display("Connection Lost.");
   }
 
   /**
@@ -99,13 +191,10 @@ public class ChatClient extends AbstractClient
     // of the socket.
     if(exception instanceof EOFException){
       this.connectionClosed();
+      clientUI.display("Quitting.");
+      System.exit(1);
     }
   }
-
-
-  
-
-
 
 
   /**
