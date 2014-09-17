@@ -20,7 +20,7 @@ import java.io.*;
 public class ChatClient extends AbstractClient
 {
   //Instance variables **********************************************
-  
+
   /**
    * The interface type variable.  It allows the implementation of 
    * the display method in the client.
@@ -78,6 +78,36 @@ public class ChatClient extends AbstractClient
     }
   }
   
+
+  //Modified for E49 (a)-- Samy Abidib
+  
+  /**
+   * Overrided method from AbstractClient that is called 
+   * when the connectino to the server is closed.
+   */
+  protected void connectionClosed() {
+      System.out.println("Server Disconnected. Quitting.");
+      System.exit(1);
+  }
+
+  /**
+   * Overrided Method from AbstractClient that is 
+   * called whent here is an exception in the client thread.
+   */
+  protected void connectionException(Exception exception) {
+    // We check if the exception is an EOF, i.e we hit the end 
+    // of the socket.
+    if(exception instanceof EOFException){
+      this.connectionClosed();
+    }
+  }
+
+
+  
+
+
+
+
   /**
    * This method terminates the client.
    */
