@@ -58,7 +58,7 @@ public class EchoServer extends AbstractServer
   //Instance methods ************************************************
   
   /**
-   * This method handles any messages received from the client.
+   * This method handles any messages received from the client. Modified for E51 part c (S.H).
    *
    * @param msg The message received from the client.
    * @param client The connection from which the message originated.
@@ -66,8 +66,33 @@ public class EchoServer extends AbstractServer
   public void handleMessageFromClient
     (Object msg, ConnectionToClient client)
   {
-    System.out.println("Message received: " + msg + " from " + client);
-    this.sendToAllClients(msg);
+  	String loginID = (String) client.getInfo("loginid");  	
+  	String message = (String) msg;
+  	if ((loginID != null) && (message.indexOf("#login") > -1)) {		// if a client enters #login and is already logged in
+  		try {
+			client.sendToClient("ERROR: Already logged in.");
+		} catch (IOException e) {
+			server.display("Could not send message to client.");
+		}
+  	}
+  	else if (loginID == null) {											// if a client has not yet logged in
+  		if (message.indexOf("#login") > -1) {							// if a client enters #login, get their ID
+	  		loginID = message.substring(message.indexOf(" ")+1);		// the login id is the string that follows #login
+	  	  	client.setInfo("loginid", loginID);
+  	  	}
+  	  	else {												// terminate client connection if client says something besides #login
+  	  		try {
+  	  			client.sendToClient("ERROR: First command has to be #login. Terminating client connection now...");
+				client.close();
+			} catch (IOException e) {
+				server.display("Could not close client.");
+			}
+  	  	}
+  	}
+  	else {
+	    System.out.println("Message received: " + msg + " from " + client);    
+	    this.sendToAllClients(loginID + ": " + msg);
+    }
   }
     
   /**
@@ -96,7 +121,7 @@ public class EchoServer extends AbstractServer
    * when a client disconnects. This is for E49 part c (S.H).
    */
   synchronized protected void clientDisconnected(ConnectionToClient client) {
-	  System.out.println("Client disconnected: " + client);
+	  System.out.println("Client disconnected.");
   }
   
   
