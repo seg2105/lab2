@@ -3,17 +3,20 @@
 // license found at www.lloseng.com 
 
 import java.io.*;
+
+import common.ChatIF;
 import ocsf.server.*;
 
 /**
  * This class overrides some of the methods in the abstract 
  * superclass in order to give more functionality to the server.
  *
+ * @author Sarmad Hashmi (7249729)
  * @author Dr Timothy C. Lethbridge
  * @author Dr Robert Lagani&egrave;re
  * @author Fran&ccedil;ois B&eacute;langer
  * @author Paul Holden
- * @version July 2000
+ * @version September 2014
  */
 public class EchoServer extends AbstractServer 
 {
@@ -22,7 +25,19 @@ public class EchoServer extends AbstractServer
   /**
    * The default port to listen on.
    */
-  final public static int DEFAULT_PORT = 5555;
+  final public static int DEFAULT_PORT = 5555;  
+  
+  /**
+   * The interface type variable.
+   * Allows implementation of display method in server.
+   */  	
+  ChatIF server;
+  
+  /**
+   * Boolean to store whether or not server is closed (all clients disconnected and not listening).
+   */
+  boolean closed = false;
+  
   
   //Constructors ****************************************************
   
@@ -30,10 +45,13 @@ public class EchoServer extends AbstractServer
    * Constructs an instance of the echo server.
    *
    * @param port The port number to connect on.
+   * @param server The interface type variable.
    */
-  public EchoServer(int port) 
+  public EchoServer(int port, ChatIF server) 
   {
-    super(port);
+    super(port);   
+    this.server = server;
+    
   }
 
   
@@ -60,6 +78,7 @@ public class EchoServer extends AbstractServer
   {
     System.out.println
       ("Server listening for connections on port " + getPort());
+    closed = false;	// set closed to false when server is started
   }
   
   /**
@@ -89,38 +108,102 @@ public class EchoServer extends AbstractServer
 	  System.out.println("Client connected: " + client);
   }
   
-  //Class methods ***************************************************
+   /**
+   * This method overrides the one in the superclass. Called
+   * when a server disconnects all clients and stops listening.
+   * This is for E50 part c (S.H).
+   */
+  protected void serverClosed() {
+	  closed = true; // set closed to true whenever close() is called
+  }
   
   /**
-   * This method is responsible for the creation of 
-   * the server instance (there is no UI in this phase).
+   * This method handles all data coming from the server console.
+   * This has been added for E50 part c (S.H).   
    *
-   * @param args[0] The port number to listen on.  Defaults to 5555 
-   *          if no argument is entered.
+   * @param message The message from the UI.    
    */
-  public static void main(String[] args) 
+  public void handleMessageFromServerUI(String message)
   {
-    int port = 0; //Port to listen on
-
-    try
-    {
-      port = Integer.parseInt(args[0]); //Get port from command line
-    }
-    catch(Throwable t)
-    {
-      port = DEFAULT_PORT; //Set port to 5555
-    }
-	
-    EchoServer sv = new EchoServer(port);
-    
-    try 
-    {
-      sv.listen(); //Start listening for connections
+  	server.display("SERVER MSG> " + message);
+  	String messageWithoutHash, cmd, argument = null;
+  	String[] msgArr;
+  	if (message.indexOf("#") == 0){
+  		messageWithoutHash = message.substring(1);
+  		msgArr = messageWithoutHash.split(" ");
+  		cmd = msgArr[0];
+  		if (msgArr.length > 1) {
+  			argument = msgArr[1];
+  		}
+  		/************#quit*******************/
+  		if (cmd.equals("quit")) {  			
+  			try {  				
+				this.close();
+				server.display("Closing server...");
+				System.exit(0);
+			} catch (IOException e) {
+				server.display("Could not close server.");
+			}
+  		}
+  		/************#stop*******************/
+  		else if (cmd.equals("stop")) {  			
+  			if (this.isListening()) {
+  				server.display("Server will now stop listening for clients...");
+  				this.stopListening();
+  			}  	  			
+  		}
+  		/************#close*******************/
+  		else if (cmd.equals("close")) {
+  			server.display("Server will now disconnect all clients and stop listening...");
+  			if (!closed){
+	  			try {
+					this.close();
+					this.stopListening();
+				} catch (IOException e) {
+					server.display("Could not close server.");
+				}  			
+  			}
+  			else {
+  				server.display("Server is already closed.");
+  			}
+  		}
+  		/************#setport <port>*******************/
+  		else if (cmd.equals("setport")) {
+  			if (closed) {	  			
+	  			try {	  				
+	  				this.setPort(Integer.parseInt(argument));
+	  				server.display("Port changed to " + argument);
+	  			}
+	  			catch (NumberFormatException e){
+	  				server.display("Port must be an integer.");
+	  			}
+  			}
+  			else {
+  				server.display("Server must be closed before changing ports.");
+  			}
+  		}
+  		/************#start*******************/
+  		else if (cmd.equals("start")) {  			
+  			if (!this.isListening()) {
+  				server.display("Server will now start listening for clients...");
+				try {
+					this.listen();
+				} catch (IOException e) {
+					server.display("Cannot start listening again.");
+				} 
+			}
+			else {
+				server.display("The server is already started.");
+			}
+  		}
+  		/************#getport*******************/
+  		else if (cmd.equals("getport")) {
+  			server.display("Currently listening on port: " + this.getPort());  			
+  		}	
+  	}
+  	else {
+     	this.sendToAllClients("SERVER MSG> " + message);     	     	
     } 
-    catch (Exception ex) 
-    {
-      System.out.println("ERROR - Could not listen for clients!");
-    }
   }
-}
+} 
 //End of EchoServer class
