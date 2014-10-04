@@ -90,7 +90,7 @@ public class EchoServer extends AbstractServer
   	  	}
   	}
   	else {
-	    System.out.println("Message received: " + msg + " from " + client);    
+	    System.out.println("Message received: " + msg + " from " + loginID);    
 	    this.sendToAllClients(loginID + ": " + msg);
     }
   }
@@ -121,7 +121,18 @@ public class EchoServer extends AbstractServer
    * when a client disconnects. This is for E49 part c (S.H).
    */
   synchronized protected void clientDisconnected(ConnectionToClient client) {
-	  System.out.println("Client disconnected.");
+	 server.display(client.getInfo("loginid") + " has disconnected.");
+	 this.sendToAllClients(client.getInfo("loginid") + " has disconnected.");
+  }
+  
+  /**
+   * This method overrides the one in the superclass. Called
+   * when a client disconnects. This is for E49 part c (S.H).
+   */
+  synchronized protected void clientException(
+    ConnectionToClient client, Throwable exception) {
+	  server.display(client.getInfo("loginid") + " has disconnected.");
+	  this.sendToAllClients(client.getInfo("loginid") + " has disconnected.");
   }
   
   
@@ -162,9 +173,9 @@ public class EchoServer extends AbstractServer
   		}
   		/************#quit*******************/
   		if (cmd.equals("quit")) {  			
-  			try {  				
-				this.close();
-				server.display("Closing server...");
+  			try {  				  				
+				this.close();				
+				server.display("Closing server...");				
 				System.exit(0);
 			} catch (IOException e) {
 				server.display("Could not close server.");
@@ -174,6 +185,7 @@ public class EchoServer extends AbstractServer
   		else if (cmd.equals("stop")) {  			
   			if (this.isListening()) {
   				server.display("Server will now stop listening for clients...");
+  				this.sendToAllClients("SERVER MSG> WARNING - The server has stopped listening for connections.");
   				this.stopListening();
   			}  	  			
   		}
@@ -182,6 +194,7 @@ public class EchoServer extends AbstractServer
   			server.display("Server will now disconnect all clients and stop listening...");
   			if (!closed){
 	  			try {
+	  				this.sendToAllClients("SERVER MSG> SERVER SHUTTING DOWN! DISCONNECTING!");
 					this.close();
 					this.stopListening();
 				} catch (IOException e) {
@@ -229,6 +242,40 @@ public class EchoServer extends AbstractServer
   	else {
      	this.sendToAllClients("SERVER MSG> " + message);     	     	
     } 
+  }
+  
+  //Class methods ***************************************************
+  
+  /**
+   * This method is responsible for the creation of 
+   * the server instance (there is no UI in this phase).
+   *
+   * @param args[0] The port number to listen on.  Defaults to 5555 
+   *          if no argument is entered.
+   */
+  public static void main(String[] args) 
+  {
+    int port = 0; //Port to listen on
+
+    try
+    {
+      port = Integer.parseInt(args[0]); //Get port from command line
+    }
+    catch(Throwable t)
+    {
+      port = DEFAULT_PORT; //Set port to 5555
+    }
+	
+    ServerConsole sv = new ServerConsole(port);
+    
+    try 
+    {
+      sv.accept(); //Start listening for connections
+    } 
+    catch (Exception ex) 
+    {
+      System.out.println("ERROR - Could not listen for clients!");
+    }
   }
 } 
 //End of EchoServer class
