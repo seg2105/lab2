@@ -12,6 +12,7 @@ import ocsf.server.*;
  * superclass in order to give more functionality to the server.
  *
  * @author Sarmad Hashmi (7249729)
+ * @author Samy Abidib (6909624)
  * @author Dr Timothy C. Lethbridge
  * @author Dr Robert Lagani&egrave;re
  * @author Fran&ccedil;ois B&eacute;langer
@@ -67,7 +68,7 @@ public class EchoServer extends AbstractServer
     (Object msg, ConnectionToClient client)
   {
   	String loginID = (String) client.getInfo("loginid");  	
-  	String message = (String) msg;
+  	String message = (String) msg;  	
   	if ((loginID != null) && (message.indexOf("#login") > -1)) {		// if a client enters #login and is already logged in
   		try {
 			client.sendToClient("ERROR: Already logged in.");

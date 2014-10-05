@@ -12,6 +12,8 @@ import java.io.*;
  * This class overrides some of the methods defined in the abstract
  * superclass in order to give more functionality to the client.
  *
+ * @author Sarmad Hashmi (7249729)
+ * @author Samy Abidib (6909624)
  * @author Dr Timothy C. Lethbridge
  * @author Dr Robert Lagani&egrave;
  * @author Fran&ccedil;ois B&eacute;langer

@@ -7,6 +7,7 @@ import common.*;
  * Warning: Some of the code here is cloned in ChatConsole.
  *
  * @author Sarmad Hashmi (7249729)
+ * @author Samy Abidib (6909624)
  * @version September 2014
  */
 public class ServerConsole implements ChatIF 
