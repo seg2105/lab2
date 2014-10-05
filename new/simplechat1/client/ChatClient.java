@@ -103,8 +103,7 @@ public class ChatClient extends AbstractClient
         } catch (Exception e){
           clientUI.display("IOException when disconnecting.");
         }
-        clientUI.display("Quitting.");
-        System.exit(0);
+        clientUI.display("Quitting.");        
       /********* Log Off****************/
       } else if(command.equals("logoff")){
         try{
@@ -149,6 +148,7 @@ public class ChatClient extends AbstractClient
         } else {
           try{
             openConnection();
+            sendToServer("#login " + this.loginID);
             clientUI.display("Connected to server at " + this.getHost() + ":"+this.getPort());
           } catch (Exception e){
             clientUI.display("Could not connect to server at " + this.getHost() + ":"+this.getPort());
@@ -198,8 +198,7 @@ public class ChatClient extends AbstractClient
     // of the socket.
     if(exception instanceof EOFException){
       this.connectionClosed();
-      clientUI.display("Quitting.");
-      System.exit(1);
+      clientUI.display("Quitting.");      
     }
   }
 
@@ -213,8 +212,7 @@ public class ChatClient extends AbstractClient
     {
       closeConnection();
     }
-    catch(IOException e) {}
-    System.exit(0);
+    catch(IOException e) {}    
   }
 }
 //End of ChatClient class
